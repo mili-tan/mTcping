@@ -30,6 +30,7 @@ namespace mTcping
             var wOption = cmd.Option<int>("-w <timeout>", "等待每次回复的超时时间(毫秒)。", CommandOptionType.SingleValue);
             var times = new List<int>();
             var errors = new List<int>();
+            var tasks = new List<Task>();
             var sent = 0;
 
             cmd.OnExecute(() =>
@@ -56,7 +57,7 @@ namespace mTcping
                     i < (nOption.HasValue() ? nOption.ParsedValue : tOption.HasValue() ? int.MaxValue : 4);
                     i++)
                 {
-                    Task.Run(() =>
+                    var t = Task.Run(() =>
                     {
                         sent += 1;
                         var stopWatch = new Stopwatch();
@@ -91,10 +92,12 @@ namespace mTcping
                         var time = Convert.ToInt32(stopWatch.Elapsed.TotalMilliseconds);
                         if (conn) times.Add(time);
                         Console.WriteLine($"来自 {point.Address}:{point.Port} 的 TCP 响应: 端口={conn} 时间={time}ms");
-                        Thread.Sleep(500);
-                    }).Wait(wOption.HasValue() ? wOption.ParsedValue + 1000 : 3000);
+                        //Thread.Sleep(500);
+                    });
+                    tasks.Add(t);
                 }
 
+                Task.WaitAll(tasks.ToArray());
                 Console.WriteLine();
                 Console.WriteLine($"{point.Address}:{point.Port} 的 Tcping 统计信息:");
                 Console.WriteLine(
