@@ -24,6 +24,7 @@ namespace mTcping
 
             cmd.HelpOption("-?|-h|--help");
             var hostArgument = cmd.Argument("host", "指定的目标主机地址。");
+            var portArgument = cmd.Argument("port", "指定的目标主机端口。");
             var tOption = cmd.Option<string>("-t", "Tcping 指定的主机，直到键入 Ctrl+C 停止。", CommandOptionType.NoValue);
             var nOption = cmd.Option<int>("-n <count>", "要发送的回显请求数。", CommandOptionType.SingleValue);
             var wOption = cmd.Option<int>("-w <timeout>", "等待每次回复的超时时间(毫秒)。", CommandOptionType.SingleValue);
@@ -42,7 +43,9 @@ namespace mTcping
                 Console.WriteLine();
                 var host = hostArgument.Value.Contains("://")
                     ? new Uri(hostArgument.Value)
-                    : new Uri("http://" + hostArgument.Value);
+                    : new Uri("http://" + hostArgument.Value + (!string.IsNullOrWhiteSpace(portArgument.Value)
+                        ? ":" + portArgument.Value
+                        : string.Empty));
                 var point = host.HostNameType == UriHostNameType.Dns
                     ? new IPEndPoint(Dns.GetHostAddresses(host.Host).FirstOrDefault(), host.Port)
                     : new IPEndPoint(IPAddress.Parse(host.Host), host.Port);
