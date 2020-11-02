@@ -101,6 +101,7 @@ namespace mTcping
 
                 if (aOption.HasValue()) Task.WaitAll(tasks.ToArray());
 
+                Thread.Sleep(500);
                 Console.WriteLine();
                 Console.WriteLine($"{point.Address}:{point.Port} 的 Tcping 统计信息:");
                 Console.WriteLine(
@@ -113,6 +114,7 @@ namespace mTcping
 
             Console.CancelKeyPress += (sender, e) =>
             {
+                Thread.Sleep(500);
                 if (point == null) return;
                 Console.WriteLine();
                 Console.WriteLine($"{point.Address}:{point.Port} 的 Tcping 统计信息:");
