@@ -23,8 +23,8 @@ namespace mTcping
             };
 
             cmd.HelpOption("-?|-h|--help");
-            var hostArgument = cmd.Argument("host", "指定的目标主机地址。");
-            var portArgument = cmd.Argument("port", "指定的目标主机端口。");
+            var hostArg = cmd.Argument("host", "指定的目标主机地址。");
+            var portArg = cmd.Argument("port", "指定的目标主机端口。");
             var tOption = cmd.Option<string>("-t", "Tcping 指定的主机，直到键入 Ctrl+C 停止。", CommandOptionType.NoValue);
             var aOption = cmd.Option<string>("-a|--async", "Async Tcping 指定的主机，异步快速模式。", CommandOptionType.NoValue);
             var nOption = cmd.Option<int>("-n <count>", "要发送的回显请求数。", CommandOptionType.SingleValue);
@@ -38,15 +38,15 @@ namespace mTcping
 
             cmd.OnExecute(() =>
             {
-                var host = hostArgument.Value.Contains("://")
-                    ? new Uri(hostArgument.Value)
-                    : new Uri("http://" + hostArgument.Value + (!string.IsNullOrWhiteSpace(portArgument.Value)
-                        ? ":" + portArgument.Value
+                var host = hostArg.Value.Contains("://")
+                    ? new Uri(hostArg.Value)
+                    : new Uri("http://" + hostArg.Value + (!string.IsNullOrWhiteSpace(portArg.Value)
+                        ? ":" + portArg.Value
                         : string.Empty));
                 point = host.HostNameType == UriHostNameType.Dns
                     ? new IPEndPoint(Dns.GetHostAddresses(host.Host).FirstOrDefault(), host.Port)
                     : new IPEndPoint(IPAddress.Parse(host.Host), host.Port);
-                if (string.IsNullOrWhiteSpace(hostArgument.Value))
+                if (string.IsNullOrWhiteSpace(hostArg.Value))
                 {
                     Console.WriteLine("指定的目标主机地址不应该为空");
                     return;
