@@ -28,6 +28,7 @@ namespace mTcping
             var tOption = cmd.Option<string>("-t", "Tcping 指定的主机，直到键入 Ctrl+C 停止。", CommandOptionType.NoValue);
             var aOption = cmd.Option<string>("-a|--async", "Async Tcping 指定的主机，异步快速模式。", CommandOptionType.NoValue);
             var nOption = cmd.Option<int>("-n <count>", "要发送的回显请求数。", CommandOptionType.SingleValue);
+            var iOption = cmd.Option<int>("-i <time>", "要发送的请求间隔时间。", CommandOptionType.SingleValue);
             var wOption = cmd.Option<int>("-w <timeout>", "等待每次回复的超时时间(毫秒)。", CommandOptionType.SingleValue);
             var times = new List<int>();
             var errors = new List<int>();
@@ -62,12 +63,12 @@ namespace mTcping
                     var i1 = i;
                     var t = Task.Run(() =>
                     {
-                        if (!aOption.HasValue()) Thread.Sleep(500);
+                        if (!aOption.HasValue()) Thread.Sleep(iOption.HasValue() ? iOption.ParsedValue : 500);
                         else Thread.Sleep(i1 * 50);
-                        sent.Add(0);
                         var stopWatch = new Stopwatch();
                         var conn = true;
                         stopWatch.Start();
+                        sent.Add(0);
                         try
                         {
                             var socks = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp)
@@ -110,6 +111,7 @@ namespace mTcping
                 Console.WriteLine("往返行程的估计时间(以毫秒为单位):");
                 Console.WriteLine(
                     $"    最短 = {times.Min():0.0}ms，最长 = {times.Max():0.0}ms，平均 = {times.Average():0.0}ms");
+                Console.WriteLine();
             });
 
             Console.CancelKeyPress += (sender, e) =>
@@ -124,6 +126,7 @@ namespace mTcping
                 Console.WriteLine("往返行程的估计时间(以毫秒为单位):");
                 Console.WriteLine(
                     $"    最短 = {times.Min():0.0}ms，最长 = {times.Max():0.0}ms，平均 = {times.Average():0.0}ms");
+                Console.WriteLine();
             };
 
             cmd.Execute(args);
