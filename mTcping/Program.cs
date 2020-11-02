@@ -26,6 +26,7 @@ namespace mTcping
             var hostArgument = cmd.Argument("host", "指定的目标主机地址。");
             var portArgument = cmd.Argument("port", "指定的目标主机端口。");
             var tOption = cmd.Option<string>("-t", "Tcping 指定的主机，直到键入 Ctrl+C 停止。", CommandOptionType.NoValue);
+            var aOption = cmd.Option<string>("-a|--async", "Async Tcping 指定的主机，异步快速模式。", CommandOptionType.NoValue);
             var nOption = cmd.Option<int>("-n <count>", "要发送的回显请求数。", CommandOptionType.SingleValue);
             var wOption = cmd.Option<int>("-w <timeout>", "等待每次回复的超时时间(毫秒)。", CommandOptionType.SingleValue);
             var times = new List<int>();
@@ -92,12 +93,13 @@ namespace mTcping
                         var time = Convert.ToInt32(stopWatch.Elapsed.TotalMilliseconds);
                         if (conn) times.Add(time);
                         Console.WriteLine($"来自 {point.Address}:{point.Port} 的 TCP 响应: 端口={conn} 时间={time}ms");
-                        //Thread.Sleep(500);
+                        if (!aOption.HasValue()) Thread.Sleep(500);
                     });
-                    tasks.Add(t);
+                    if (aOption.HasValue()) tasks.Add(t);
+                    else t.Wait(wOption.HasValue() ? wOption.ParsedValue + 1000 : 3000);
                 }
-
-                Task.WaitAll(tasks.ToArray());
+                if (aOption.HasValue()) Task.WaitAll(tasks.ToArray());
+                
                 Console.WriteLine();
                 Console.WriteLine($"{point.Address}:{point.Port} 的 Tcping 统计信息:");
                 Console.WriteLine(
