@@ -30,27 +30,46 @@ namespace mTcping
             var nOption = cmd.Option<int>("-n <count>", "要发送的回显请求数。", CommandOptionType.SingleValue);
             var iOption = cmd.Option<int>("-i <time>", "要发送的请求间隔时间。", CommandOptionType.SingleValue);
             var wOption = cmd.Option<int>("-w <timeout>", "等待每次回复的超时时间(毫秒)。", CommandOptionType.SingleValue);
+            var ipv4Option = cmd.Option<int>("-4", "强制使用 IPv4。", CommandOptionType.NoValue);
+            var ipv6Option = cmd.Option<int>("-6", "强制使用 IPv4。", CommandOptionType.NoValue);
             var times = new List<int>();
             var errors = new List<int>();
             var tasks = new List<Task>();
             var sent = new List<int>();
             IPEndPoint point = null;
 
+            var ip = IPAddress.Loopback;
             cmd.OnExecute(() =>
             {
-                var host = hostArg.Value.Contains("://")
-                    ? new Uri(hostArg.Value)
-                    : new Uri("http://" + hostArg.Value + (!string.IsNullOrWhiteSpace(portArg.Value)
-                        ? ":" + portArg.Value
-                        : string.Empty));
-                point = host.HostNameType == UriHostNameType.Dns
-                    ? new IPEndPoint(Dns.GetHostAddresses(host.Host).FirstOrDefault(), host.Port)
-                    : new IPEndPoint(IPAddress.Parse(host.Host), host.Port);
                 if (string.IsNullOrWhiteSpace(hostArg.Value))
                 {
                     Console.WriteLine("指定的目标主机地址不应该为空");
                     return;
                 }
+                var host = hostArg.Value.Contains("://")
+                    ? new Uri(hostArg.Value)
+                    : new Uri("http://" + hostArg.Value + (!string.IsNullOrWhiteSpace(portArg.Value)
+                        ? ":" + portArg.Value
+                        : string.Empty));
+
+                if (host.HostNameType == UriHostNameType.Dns)
+                    if (ipv4Option.HasValue())
+                    {
+                        foreach (var hostAddress in Dns.GetHostAddresses(host.Host))
+                            if (hostAddress.AddressFamily == AddressFamily.InterNetwork)
+                                ip = hostAddress;
+                    }
+                    else if (ipv6Option.HasValue())
+                    {
+                        foreach (var hostAddress in Dns.GetHostAddresses(host.Host))
+                            if (hostAddress.AddressFamily == AddressFamily.InterNetworkV6)
+                                ip = hostAddress;
+                    }
+                    else ip = Dns.GetHostAddresses(host.Host).FirstOrDefault();
+
+                point = host.HostNameType == UriHostNameType.Dns
+                    ? new IPEndPoint(ip, host.Port)
+                    : new IPEndPoint(IPAddress.Parse(host.Host), host.Port);
 
                 Console.WriteLine();
                 Console.WriteLine($"正在 Tcping {point.Address}:{point.Port} 目标主机" +
