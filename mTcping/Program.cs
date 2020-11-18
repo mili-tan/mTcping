@@ -25,13 +25,14 @@ namespace mTcping
             cmd.HelpOption("-?|-h|--help");
             var hostArg = cmd.Argument("host", "指定的目标主机地址。");
             var portArg = cmd.Argument("port", "指定的目标主机端口。");
-            var tOption = cmd.Option<string>("-t", "Tcping 指定的主机，直到键入 fCtrl+C 停止。", CommandOptionType.NoValue);
-            var aOption = cmd.Option<string>("-a|--async", "Async Tcping 指定的主机，异步快速模式。", CommandOptionType.NoValue);
-            var nOption = cmd.Option<int>("-n <count>", "要发送的回显请求数。", CommandOptionType.SingleValue);
+            var tOption = cmd.Option<string>("-t", "Tcping 指定的主机，直到键入 Ctrl+C 停止。", CommandOptionType.NoValue);
+            var aOption = cmd.Option("-a|--async", "Async Tcping 指定的主机，异步快速模式。", CommandOptionType.NoValue);
+            var nOption = cmd.Option<int>("-n|-c|--count <count>", "要发送的回显请求数。", CommandOptionType.SingleValue);
             var iOption = cmd.Option<int>("-i <time>", "要发送的请求间隔时间。", CommandOptionType.SingleValue);
             var wOption = cmd.Option<int>("-w <timeout>", "等待每次回复的超时时间(毫秒)。", CommandOptionType.SingleValue);
-            var ipv4Option = cmd.Option<int>("-4", "强制使用 IPv4。", CommandOptionType.NoValue);
-            var ipv6Option = cmd.Option<int>("-6", "强制使用 IPv4。", CommandOptionType.NoValue);
+            var ipv4Option = cmd.Option("-4", "强制使用 IPv4。", CommandOptionType.NoValue);
+            var ipv6Option = cmd.Option("-6", "强制使用 IPv4。", CommandOptionType.NoValue);
+            var dateOption = cmd.Option("-d", "显示响应时间戳。", CommandOptionType.NoValue);
             var times = new List<int>();
             var errors = new List<int>();
             var tasks = new List<Task>();
@@ -43,7 +44,8 @@ namespace mTcping
             {
                 if (string.IsNullOrWhiteSpace(hostArg.Value))
                 {
-                    Console.WriteLine("指定的目标主机地址不应该为空");
+                    Console.WriteLine("指定的目标主机地址不应该为空。");
+                    cmd.ShowHelp();
                     return;
                 }
                 var host = hostArg.Value.Contains("://")
@@ -119,6 +121,7 @@ namespace mTcping
                         stopWatch.Stop();
                         var time = Convert.ToInt32(stopWatch.Elapsed.TotalMilliseconds);
                         if (conn) times.Add(time);
+                        if (dateOption.HasValue()) Console.Write(DateTime.Now + " ");
                         Console.WriteLine($"来自 {point.Address}:{point.Port} 的 TCP 响应: 端口={conn} 时间={time}ms");
                     });
                     if (aOption.HasValue()) tasks.Add(t);
