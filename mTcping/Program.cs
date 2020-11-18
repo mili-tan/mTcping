@@ -25,7 +25,7 @@ namespace mTcping
             cmd.HelpOption("-?|-h|--help");
             var hostArg = cmd.Argument("host", "指定的目标主机地址。");
             var portArg = cmd.Argument("port", "指定的目标主机端口。");
-            var tOption = cmd.Option<string>("-t", "Tcping 指定的主机，直到键入 Ctrl+C 停止。", CommandOptionType.NoValue);
+            var tOption = cmd.Option<string>("-t", "Tcping 指定的主机，直到键入 fCtrl+C 停止。", CommandOptionType.NoValue);
             var aOption = cmd.Option<string>("-a|--async", "Async Tcping 指定的主机，异步快速模式。", CommandOptionType.NoValue);
             var nOption = cmd.Option<int>("-n <count>", "要发送的回显请求数。", CommandOptionType.SingleValue);
             var iOption = cmd.Option<int>("-i <time>", "要发送的请求间隔时间。", CommandOptionType.SingleValue);
@@ -38,7 +38,7 @@ namespace mTcping
             var sent = new List<int>();
             IPEndPoint point = null;
 
-            var ip = IPAddress.Loopback;
+            var ip = IPAddress.None;
             cmd.OnExecute(() =>
             {
                 if (string.IsNullOrWhiteSpace(hostArg.Value))
@@ -70,6 +70,12 @@ namespace mTcping
                 point = host.HostNameType == UriHostNameType.Dns
                     ? new IPEndPoint(ip, host.Port)
                     : new IPEndPoint(IPAddress.Parse(host.Host), host.Port);
+
+                if (Equals(ip, IPAddress.None))
+                {
+                    Console.WriteLine("请求找不到目标主机。请检查该名称，然后重试。");
+                    Environment.Exit(0);
+                }
 
                 Console.WriteLine();
                 Console.WriteLine($"正在 Tcping {point.Address}:{point.Port} 目标主机" +
