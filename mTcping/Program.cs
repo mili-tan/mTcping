@@ -113,7 +113,7 @@ namespace mTcping
                                 errors.Add(0);
                                 conn = false;
                             }
-                            else socks.Close(wOption.HasValue() ? wOption.ParsedValue : 2000);
+                            else Task.Run(()=>socks.Close(wOption.HasValue() ? wOption.ParsedValue : 2000));
                         }
                         catch (Exception exception)
                         {
