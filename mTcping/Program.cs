@@ -33,6 +33,7 @@ namespace mTcping
             var ipv4Option = cmd.Option("-4", "强制使用 IPv4。", CommandOptionType.NoValue);
             var ipv6Option = cmd.Option("-6", "强制使用 IPv4。", CommandOptionType.NoValue);
             var dateOption = cmd.Option("-d", "显示响应时间戳。", CommandOptionType.NoValue);
+            var stopOption = cmd.Option("-s", "在收到响应时停止。", CommandOptionType.NoValue);
             var times = new List<int>();
             var errors = new List<int>();
             var tasks = new List<Task>();
@@ -123,6 +124,7 @@ namespace mTcping
                         if (conn) times.Add(time);
                         if (dateOption.HasValue()) Console.Write(DateTime.Now + " ");
                         Console.WriteLine($"来自 {point.Address}:{point.Port} 的 TCP 响应: 端口={conn} 时间={time}ms");
+                        if (conn && stopOption.HasValue()) Environment.Exit(0);
                     });
                     if (aOption.HasValue()) tasks.Add(t);
                     else t.Wait(wOption.HasValue() ? wOption.ParsedValue + 1000 : 3000);
