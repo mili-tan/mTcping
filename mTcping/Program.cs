@@ -19,7 +19,7 @@ namespace mTcping
                 Name = "mTcping",
                 Description = "mTcping - A simple ping-over-tcp tool" +
                               Environment.NewLine +
-                              $"Copyright (c) {DateTime.Now.Year} Milkey Tan. Code released under the Mozilla Public License 2.0"
+                              $"Copyright (c) {DateTime.Now.Year} Milkey Tan. Code released under the MIT License"
             };
 
             cmd.HelpOption("-?|-h|--help");
