@@ -38,6 +38,7 @@ namespace mTcping
             var errors = new List<int>();
             var tasks = new List<Task>();
             var sent = new List<int>();
+            var breakFlag = false;
             IPEndPoint point = null;
 
             var ip = IPAddress.None;
@@ -88,7 +89,9 @@ namespace mTcping
                     i < (nOption.HasValue() ? nOption.ParsedValue : tOption.HasValue() ? int.MaxValue : 4);
                     i++)
                 {
+                    if (breakFlag) break;
                     var i1 = i;
+
                     var t = Task.Run(() =>
                     {
                         if (!aOption.HasValue()) Thread.Sleep(iOption.HasValue() ? iOption.ParsedValue : 500);
@@ -122,9 +125,9 @@ namespace mTcping
                         stopWatch.Stop();
                         var time = Convert.ToInt32(stopWatch.Elapsed.TotalMilliseconds);
                         if (conn) times.Add(time);
+                                                if (conn && stopOption.HasValue()) breakFlag = true;
                         if (dateOption.HasValue()) Console.Write(DateTime.Now + " ");
                         Console.WriteLine($"来自 {point.Address}:{point.Port} 的 TCP 响应: 端口={conn} 时间={time}ms");
-                        if (conn && stopOption.HasValue()) Environment.Exit(0);
                     });
                     if (aOption.HasValue()) tasks.Add(t);
                     else t.Wait(wOption.HasValue() ? wOption.ParsedValue + 1000 : 3000);
