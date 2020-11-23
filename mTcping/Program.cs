@@ -17,7 +17,7 @@ namespace mTcping
             var cmd = new CommandLineApplication
             {
                 Name = "mTcping",
-                Description = "mTcping - A simple ping-over-tcp tool" +
+                Description = "mTcping - A simple Ping-over-TCP tool" +
                               Environment.NewLine +
                               $"Copyright (c) {DateTime.Now.Year} Milkey Tan. Code released under the MIT License"
             };
@@ -31,7 +31,7 @@ namespace mTcping
             var iOption = cmd.Option<int>("-i <time>", "要发送的请求间隔时间。", CommandOptionType.SingleValue);
             var wOption = cmd.Option<int>("-w <timeout>", "等待每次回复的超时时间(毫秒)。", CommandOptionType.SingleValue);
             var ipv4Option = cmd.Option("-4", "强制使用 IPv4。", CommandOptionType.NoValue);
-            var ipv6Option = cmd.Option("-6", "强制使用 IPv4。", CommandOptionType.NoValue);
+            var ipv6Option = cmd.Option("-6", "强制使用 IPv6。", CommandOptionType.NoValue);
             var dateOption = cmd.Option("-d", "显示响应时间戳。", CommandOptionType.NoValue);
             var stopOption = cmd.Option("-s", "在收到响应时停止。", CommandOptionType.NoValue);
             var times = new List<int>();
@@ -95,7 +95,7 @@ namespace mTcping
                     var t = Task.Run(() =>
                     {
                         if (!aOption.HasValue()) Thread.Sleep(iOption.HasValue() ? iOption.ParsedValue : 500);
-                        else Thread.Sleep(i1 * 50);
+                        else Thread.Sleep(i1 * 10);
                         var stopWatch = new Stopwatch();
                         var conn = true;
                         stopWatch.Start();
@@ -113,7 +113,7 @@ namespace mTcping
                                 errors.Add(0);
                                 conn = false;
                             }
-                            else Task.Run(()=>socks.Close(wOption.HasValue() ? wOption.ParsedValue : 2000));
+                            else Task.Run(() => socks.Close(wOption.HasValue() ? wOption.ParsedValue : 2000));
                         }
                         catch (Exception exception)
                         {
@@ -135,7 +135,7 @@ namespace mTcping
 
                 if (aOption.HasValue()) Task.WaitAll(tasks.ToArray());
 
-                Thread.Sleep(500);
+                Thread.Sleep(100);
                 Console.WriteLine();
                 Console.WriteLine($"{point.Address}:{point.Port} 的 Tcping 统计信息:");
                 Console.WriteLine(
