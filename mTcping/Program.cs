@@ -79,9 +79,11 @@ namespace mTcping
                 {
                     point = new IPEndPoint(ip, host.Port);
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
-                    Console.WriteLine(e);
+                    //Console.WriteLine(e); 
+                    point = new IPEndPoint(ip, 80);
+                    if (hostArg.Value.StartsWith("ssh://")) point.Port = 22;
                 }
 
                 if (Equals(ip, IPAddress.None))
