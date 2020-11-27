@@ -17,7 +17,7 @@ namespace mTcping
             var cmd = new CommandLineApplication
             {
                 Name = "mTcping",
-                Description = "mTcping - A simple Ping-over-TCP tool" +
+                Description = "mTcping - A simple Ping over TCP tool" +
                               Environment.NewLine +
                               $"Copyright (c) {DateTime.Now.Year} Milkey Tan. Code released under the MIT License"
             };
@@ -57,6 +57,7 @@ namespace mTcping
                         : string.Empty));
 
                 if (host.HostNameType == UriHostNameType.Dns)
+                {
                     if (ipv4Option.HasValue())
                     {
                         foreach (var hostAddress in Dns.GetHostAddresses(host.Host))
@@ -70,10 +71,18 @@ namespace mTcping
                                 ip = hostAddress;
                     }
                     else ip = Dns.GetHostAddresses(host.Host).FirstOrDefault();
+                }
+                else
+                    ip = IPAddress.Parse(host.Host);
 
-                point = host.HostNameType == UriHostNameType.Dns
-                    ? new IPEndPoint(ip, host.Port)
-                    : new IPEndPoint(IPAddress.Parse(host.Host), host.Port);
+                try
+                {
+                    point = new IPEndPoint(ip, host.Port);
+                }
+                catch (Exception e)
+                {
+                    point = new IPEndPoint(ip, 80);
+                }
 
                 if (Equals(ip, IPAddress.None))
                 {
