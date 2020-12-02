@@ -132,6 +132,20 @@ namespace mTcping
                         {
                             var socks = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp)
                             {
+                                Blocking = false,
+                                ReceiveTimeout = wOption.HasValue() ? wOption.ParsedValue : 2000,
+                                SendTimeout = wOption.HasValue() ? wOption.ParsedValue : 2000
+                            };
+                            socks.BeginConnect(point, null, null).AsyncWaitHandle.WaitOne(500);
+                        }
+                        catch (Exception e)
+                        {
+                            Console.WriteLine(e);
+                        }
+                        try
+                        {
+                            var socks = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp)
+                            {
                                 Blocking = false, ReceiveTimeout = wOption.HasValue() ? wOption.ParsedValue : 2000,
                                 SendTimeout = wOption.HasValue() ? wOption.ParsedValue : 2000
                             };
