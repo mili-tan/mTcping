@@ -22,19 +22,28 @@ namespace mTcping
                               Environment.NewLine +
                               $"Copyright (c) {DateTime.Now.Year} Milkey Tan. Code released under the MIT License"
             };
-
+            var isZh = Thread.CurrentThread.CurrentCulture.Name.Contains("zh");
             cmd.HelpOption("-?|-h|--help");
-            var hostArg = cmd.Argument("host", "指定的目标主机地址。");
-            var portArg = cmd.Argument("port", "指定的目标主机端口。");
-            var tOption = cmd.Option<string>("-t", "Tcping 指定的主机，直到键入 Ctrl+C 停止。", CommandOptionType.NoValue);
-            var aOption = cmd.Option("-a|--async", "Async Tcping 指定的主机，异步快速模式。", CommandOptionType.NoValue);
-            var nOption = cmd.Option<int>("-n|-c|--count <count>", "要发送的回显请求数。", CommandOptionType.SingleValue);
-            var iOption = cmd.Option<int>("-i <time>", "要发送的请求间隔时间。", CommandOptionType.SingleValue);
-            var wOption = cmd.Option<int>("-w <timeout>", "等待每次回复的超时时间(毫秒)。", CommandOptionType.SingleValue);
-            var ipv4Option = cmd.Option("-4", "强制使用 IPv4。", CommandOptionType.NoValue);
-            var ipv6Option = cmd.Option("-6", "强制使用 IPv6。", CommandOptionType.NoValue);
-            var dateOption = cmd.Option("-d", "显示响应时间戳。", CommandOptionType.NoValue);
-            var stopOption = cmd.Option("-s", "在收到响应时停止。", CommandOptionType.NoValue);
+            var hostArg = cmd.Argument("host", isZh ? "指定的目标主机地址。" : "Target host address");
+            var portArg = cmd.Argument("port", isZh ? "指定的目标主机端口。" : "Target host port");
+            var tOption = cmd.Option<string>("-t",
+                isZh ? "Tcping 指定的主机，直到键入 Ctrl+C 停止。" : "Tcping target host until you type Ctrl+C to stop.",
+                CommandOptionType.NoValue);
+            var aOption = cmd.Option("-a|--async",
+                isZh ? "Async Tcping 指定的主机，异步快速模式。" : "Async Tcping target host, asynchronous fast mode.",
+                CommandOptionType.NoValue);
+            var nOption = cmd.Option<int>("-n|-c|--count <count>",
+                isZh ? "要发送的回显请求数。" : "Number of echo requests to send", CommandOptionType.SingleValue);
+            var iOption = cmd.Option<int>("-i <time>", isZh ? "要发送的请求间隔时间。" : "Request interval to send",
+                CommandOptionType.SingleValue);
+            var wOption = cmd.Option<int>("-w <timeout>",
+                isZh ? "等待每次回复的超时时间(毫秒)。" : "Timeout time to wait for each reply", CommandOptionType.SingleValue);
+            var ipv4Option = cmd.Option("-4", isZh ? "强制使用 IPv4。" : "Forced IPv4", CommandOptionType.NoValue);
+            var ipv6Option = cmd.Option("-6", isZh ? "强制使用 IPv6。" : "Forced IPv6", CommandOptionType.NoValue);
+            var dateOption = cmd.Option("-d", isZh ? "显示响应时间戳。" : "Display response timestamp",
+                CommandOptionType.NoValue);
+            var stopOption = cmd.Option("-s", isZh ? "在收到响应时停止。" : "Stop on receipt of response",
+                CommandOptionType.NoValue);
             var times = new List<int>();
             var errors = new List<int>();
             var tasks = new List<Task>();
@@ -49,10 +58,11 @@ namespace mTcping
             {
                 if (string.IsNullOrWhiteSpace(hostArg.Value))
                 {
-                    Console.WriteLine("指定的目标主机地址不应该为空。");
+                    Console.WriteLine(isZh ? "指定的目标主机地址不应该为空。" : "The target host address should not be empty.");
                     cmd.ShowHelp();
                     return;
                 }
+
                 var host = hostArg.Value.Contains("://")
                     ? new Uri(hostArg.Value)
                     : new Uri("http://" + hostArg.Value + (!string.IsNullOrWhiteSpace(portArg.Value)
@@ -91,13 +101,17 @@ namespace mTcping
 
                 if (Equals(ip, IPAddress.None))
                 {
-                    Console.WriteLine("请求找不到目标主机。请检查该名称，然后重试。");
+                    Console.WriteLine(isZh
+                        ? "请求找不到目标主机。请检查该名称，然后重试。"
+                        : "The request could not find the target host. Please check the name and try again");
                     Environment.Exit(0);
                 }
 
                 Console.WriteLine();
-                Console.WriteLine($"正在 Tcping {point.Address}:{point.Port} 目标主机" +
-                                  (host.HostNameType == UriHostNameType.Dns ? $" [{host.Host}]" : string.Empty) + ":");
+                Console.WriteLine(
+                    string.Format(isZh ? "正在 Tcping {0}:{1} 目标主机" : "Tcping {0}:{1} target host in progress.",
+                        point.Address, point.Port) +
+                    (host.HostNameType == UriHostNameType.Dns ? $" [{host.Host}]" : string.Empty) + ":");
 
                 for (var i = 0;
                     i < (nOption.HasValue() ? nOption.ParsedValue : tOption.HasValue() ? int.MaxValue : 4);
@@ -139,9 +153,13 @@ namespace mTcping
                         stopWatch.Stop();
                         var time = Convert.ToInt32(stopWatch.Elapsed.TotalMilliseconds);
                         if (conn) times.Add(time);
-                                                if (conn && stopOption.HasValue()) breakFlag = true;
+                        if (conn && stopOption.HasValue()) breakFlag = true;
                         if (dateOption.HasValue()) Console.Write(DateTime.Now + " ");
-                        Console.WriteLine($"来自 {point.Address}:{point.Port} 的 TCP 响应: 端口={conn} 时间={time}ms");
+                        Console.WriteLine(
+                            isZh
+                                ? "来自 {0}:{1} 的 TCP 响应: 端口={2} 时间={3}ms"
+                                : "TCP response from {0}:{1}: port={2} time={3}ms", 
+                            point.Address, point.Port, conn, time);
                     });
                     if (aOption.HasValue()) tasks.Add(t);
                     else t.Wait(wOption.HasValue() ? wOption.ParsedValue + 1000 : 3000);
@@ -151,13 +169,20 @@ namespace mTcping
 
                 Thread.Sleep(100);
                 Console.WriteLine();
-                Console.WriteLine($"{point.Address}:{point.Port} 的 Tcping 统计信息:");
+                Console.WriteLine(isZh ? "{0}:{1} 的 Tcping 统计信息:" : "Tcping statistics for {0}:{1}:", 
+                    point.Address, point.Port);
                 Console.WriteLine(
-                    $"    连接: 已发送 = {sent.Count}，已接收 = {times.Count}，失败 = {errors.Count} ({errors.Count / (double) sent.Count:0%} 失败)");
+                    isZh
+                        ? "    连接: 已发送 = {0}，已接收 = {1}，失败 = {2} ({3:0%} 失败)"
+                        : "    Connection: Sent = {0}, Received = {1}, Failed = {2} ({3:0%} Failed)", 
+                    sent.Count, times.Count, errors.Count, errors.Count / (double) sent.Count);
                 if (times.Count <= 0) return;
-                Console.WriteLine("往返行程的估计时间(以毫秒为单位):");
+                Console.WriteLine(isZh ? "往返行程的估计时间(以毫秒为单位):" : "Time (in milliseconds) for a round trip:");
                 Console.WriteLine(
-                    $"    最短 = {times.Min():0.0}ms，最长 = {times.Max():0.0}ms，平均 = {times.Average():0.0}ms");
+                    isZh
+                        ? "    最短 = {0:0.0}ms，最长 = {1:0.0}ms，平均 = {2:0.0}ms"
+                        : "    Shortest = {0:0.0}ms, Longest = {1:0.0}ms, Average = {2:0.0}ms.", 
+                    times.Min(), times.Max(), times.Average());
                 Console.WriteLine();
             });
 
@@ -166,13 +191,20 @@ namespace mTcping
                 Thread.Sleep(500);
                 if (point == null) return;
                 Console.WriteLine();
-                Console.WriteLine($"{point.Address}:{point.Port} 的 Tcping 统计信息:");
+                Console.WriteLine(isZh ? "{0}:{1} 的 Tcping 统计信息:" : "Tcping statistics for {0}:{1}:",
+                    point.Address, point.Port);
                 Console.WriteLine(
-                    $"    连接: 已发送 = {sent.Count}，已接收 = {times.Count}，失败 = {errors.Count} ({errors.Count / (double) sent.Count:0%} 失败)");
+                    isZh
+                        ? "    连接: 已发送 = {0}，已接收 = {1}，失败 = {2} ({3:0%} 失败)"
+                        : "    Connection: Sent = {0}, Received = {1}, Failed = {2} ({3:0%} Failed)",
+                    sent.Count, times.Count, errors.Count, errors.Count / (double)sent.Count);
                 if (times.Count <= 0) return;
-                Console.WriteLine("往返行程的估计时间(以毫秒为单位):");
+                Console.WriteLine(isZh ? "往返行程的估计时间(以毫秒为单位):" : "Time (in milliseconds) for a round trip:");
                 Console.WriteLine(
-                    $"    最短 = {times.Min():0.0}ms，最长 = {times.Max():0.0}ms，平均 = {times.Average():0.0}ms");
+                    isZh
+                        ? "    最短 = {0:0.0}ms，最长 = {1:0.0}ms，平均 = {2:0.0}ms"
+                        : "    Shortest = {0:0.0}ms, Longest = {1:0.0}ms, Average = {2:0.0}ms.",
+                    times.Min(), times.Max(), times.Average());
                 Console.WriteLine();
             };
 

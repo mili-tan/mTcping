@@ -9,7 +9,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <RuntimeHostConfigurationOption Include="System.Globalization.Invariant" Value="true" />
     <PackageReference Include="McMaster.Extensions.CommandLineUtils" Version="3.0.0" />
     <PackageReference Include="Microsoft.DotNet.ILCompiler" Version="6.0.0-alpha.1.20578.3" />
     <PackageReference Include="runtime.linux-x64.Microsoft.DotNet.ILCompiler" Version="6.0.0-alpha.1.20578.3" />
