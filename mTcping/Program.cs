@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using McMaster.Extensions.CommandLineUtils;
@@ -40,6 +41,8 @@ namespace mTcping
             var sent = new List<int>();
             var breakFlag = false;
             IPEndPoint point = null;
+
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) aOption.ShowInHelpText = false;
 
             var ip = IPAddress.None;
             cmd.OnExecute(() =>
