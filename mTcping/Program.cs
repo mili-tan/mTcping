@@ -27,10 +27,10 @@ namespace mTcping
             var hostArg = cmd.Argument("host", isZh ? "指定的目标主机地址。" : "Target host address");
             var portArg = cmd.Argument("port", isZh ? "指定的目标主机端口。" : "Target host port");
             var tOption = cmd.Option<string>("-t",
-                isZh ? "Tcping 指定的主机，直到键入 Ctrl+C 停止。" : "Tcping target host until you type Ctrl+C to stop.",
+                isZh ? "Tcping 指定的主机，直到键入 Ctrl+C 停止。" : "Tcping target host until you type Ctrl+C to stop",
                 CommandOptionType.NoValue);
             var aOption = cmd.Option("-a|--async",
-                isZh ? "Async Tcping 指定的主机，异步快速模式。" : "Async Tcping target host, asynchronous fast mode.",
+                isZh ? "Async Tcping 指定的主机，异步快速模式。" : "Async Tcping target host, asynchronous fast mode",
                 CommandOptionType.NoValue);
             var nOption = cmd.Option<int>("-n|-c|--count <count>",
                 isZh ? "要发送的回显请求数。" : "Number of echo requests to send", CommandOptionType.SingleValue);
@@ -109,7 +109,7 @@ namespace mTcping
 
                 Console.WriteLine();
                 Console.WriteLine(
-                    string.Format(isZh ? "正在 Tcping {0}:{1} 目标主机" : "Tcping {0}:{1} target host in progress.",
+                    string.Format(isZh ? "正在 Tcping {0}:{1} 目标主机" : "Tcping {0}:{1} target host in progress",
                         point.Address, point.Port) +
                     (host.HostNameType == UriHostNameType.Dns ? $" [{host.Host}]" : string.Empty) + ":");
 
@@ -122,7 +122,7 @@ namespace mTcping
 
                     var t = Task.Run(() =>
                     {
-                        if (!aOption.HasValue()) Thread.Sleep(iOption.HasValue() ? iOption.ParsedValue : 500);
+                        if (!aOption.HasValue()) Thread.Sleep(iOption.HasValue() ? iOption.ParsedValue : 1000);
                         else Thread.Sleep(i1 * 10);
                         var stopWatch = new Stopwatch();
                         var conn = true;
@@ -130,13 +130,12 @@ namespace mTcping
                         sent.Add(0);
                         try
                         {
-                            var socks = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp)
+                            new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp)
                             {
                                 Blocking = false,
-                                ReceiveTimeout = wOption.HasValue() ? wOption.ParsedValue : 2000,
-                                SendTimeout = wOption.HasValue() ? wOption.ParsedValue : 2000
-                            };
-                            socks.BeginConnect(point, null, null).AsyncWaitHandle.WaitOne(500);
+                                ReceiveTimeout = wOption.HasValue() ? wOption.ParsedValue : 1000,
+                                SendTimeout = wOption.HasValue() ? wOption.ParsedValue : 1000
+                            }.BeginConnect(point, null, null).AsyncWaitHandle.WaitOne(500);
                         }
                         catch (Exception e)
                         {
@@ -172,7 +171,7 @@ namespace mTcping
                         Console.WriteLine(
                             isZh
                                 ? "来自 {0}:{1} 的 TCP 响应: 端口={2} 时间={3}ms"
-                                : "TCP response from {0}:{1}: port={2} time={3}ms", 
+                                : "TCP response from {0}:{1}: Port={2} Time={3}ms", 
                             point.Address, point.Port, conn, time);
                     });
                     if (aOption.HasValue()) tasks.Add(t);
