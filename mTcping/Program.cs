@@ -113,6 +113,20 @@ namespace mTcping
                         point.Address, point.Port) +
                     (host.HostNameType == UriHostNameType.Dns ? $" [{host.Host}]" : string.Empty) + ":");
 
+                try
+                {
+                    new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp)
+                    {
+                        Blocking = false,
+                        ReceiveTimeout = wOption.HasValue() ? wOption.ParsedValue : 1000,
+                        SendTimeout = wOption.HasValue() ? wOption.ParsedValue : 1000
+                    }.BeginConnect(point, null, null).AsyncWaitHandle.WaitOne(500);
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e);
+                }
+
                 for (var i = 0;
                     i < (nOption.HasValue() ? nOption.ParsedValue : tOption.HasValue() ? int.MaxValue : 4);
                     i++)
@@ -128,19 +142,6 @@ namespace mTcping
                         var conn = true;
                         stopWatch.Start();
                         sent.Add(0);
-                        try
-                        {
-                            new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp)
-                            {
-                                Blocking = false,
-                                ReceiveTimeout = wOption.HasValue() ? wOption.ParsedValue : 1000,
-                                SendTimeout = wOption.HasValue() ? wOption.ParsedValue : 1000
-                            }.BeginConnect(point, null, null).AsyncWaitHandle.WaitOne(500);
-                        }
-                        catch (Exception e)
-                        {
-                            Console.WriteLine(e);
-                        }
                         try
                         {
                             var socks = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp)
@@ -199,7 +200,7 @@ namespace mTcping
                 Console.WriteLine();
             });
 
-            Console.CancelKeyPress += (sender, e) =>
+            Console.CancelKeyPress += (_, _) =>
             {
                 Thread.Sleep(500);
                 if (point == null) return;
