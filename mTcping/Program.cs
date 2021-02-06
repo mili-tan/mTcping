@@ -115,7 +115,7 @@ namespace mTcping
 
                 try
                 {
-                    new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp)
+                    new Socket(point.AddressFamily, SocketType.Stream, ProtocolType.Tcp)
                     {
                         Blocking = false,
                         ReceiveTimeout = wOption.HasValue() ? wOption.ParsedValue : 1000,
@@ -144,7 +144,7 @@ namespace mTcping
                         sent.Add(0);
                         try
                         {
-                            var socks = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp)
+                            var socks = new Socket(point.AddressFamily, SocketType.Stream, ProtocolType.Tcp)
                             {
                                 Blocking = false, ReceiveTimeout = wOption.HasValue() ? wOption.ParsedValue : 2000,
                                 SendTimeout = wOption.HasValue() ? wOption.ParsedValue : 2000
