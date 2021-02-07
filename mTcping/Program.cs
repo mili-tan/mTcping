@@ -62,7 +62,7 @@ namespace mTcping
                     cmd.ShowHelp();
                     return;
                 }
-
+                
                 var host = hostArg.Value.Contains("://")
                     ? new Uri(hostArg.Value)
                     : new Uri("http://" + hostArg.Value + (!string.IsNullOrWhiteSpace(portArg.Value)
@@ -110,7 +110,9 @@ namespace mTcping
                 Console.WriteLine();
                 Console.WriteLine(
                     string.Format(isZh ? "正在 Tcping {0}:{1} 目标主机" : "Tcping {0}:{1} target host in progress",
-                        point.Address, point.Port) +
+                        point.Address.AddressFamily == AddressFamily.InterNetworkV6
+                            ? $"[{point.Address}]"
+                            : point.Address, point.Port) +
                     (host.HostNameType == UriHostNameType.Dns ? $" [{host.Host}]" : string.Empty) + ":");
 
                 try
