@@ -62,12 +62,14 @@ namespace mTcping
                     cmd.ShowHelp();
                     return;
                 }
-                
+
                 var host = hostArg.Value.Contains("://")
                     ? new Uri(hostArg.Value)
-                    : new Uri("http://" + hostArg.Value + (!string.IsNullOrWhiteSpace(portArg.Value)
-                        ? ":" + portArg.Value
-                        : string.Empty));
+                    : new Uri("http://" + (IPAddress.TryParse(hostArg.Value, out var ipAddress) &&
+                                           ipAddress.AddressFamily == AddressFamily.InterNetworkV6
+                                  ? $"[{ipAddress}]" : hostArg.Value) +
+                              (!string.IsNullOrWhiteSpace(portArg.Value)
+                                  ? ":" + portArg.Value : string.Empty));
 
                 if (host.HostNameType == UriHostNameType.Dns)
                 {
