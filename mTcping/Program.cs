@@ -176,8 +176,10 @@ namespace mTcping
                         Console.WriteLine(
                             isZh
                                 ? "来自 {0}:{1} 的 TCP 响应: 端口={2} 时间={3}ms"
-                                : "TCP response from {0}:{1}: Port={2} Time={3}ms", 
-                            point.Address, point.Port, conn, time);
+                                : "TCP response from {0}:{1} Port={2} Time={3}ms",
+                            point.Address.AddressFamily == AddressFamily.InterNetworkV6
+                                ? $"[{point.Address}]"
+                                : point.Address, point.Port, conn, time);
                     });
                     if (aOption.HasValue()) tasks.Add(t);
                     else t.Wait(wOption.HasValue() ? wOption.ParsedValue + 1000 : 3000);
@@ -187,8 +189,10 @@ namespace mTcping
 
                 Thread.Sleep(100);
                 Console.WriteLine();
-                Console.WriteLine(isZh ? "{0}:{1} 的 Tcping 统计信息:" : "Tcping statistics for {0}:{1}:", 
-                    point.Address, point.Port);
+                Console.WriteLine(isZh ? "{0}:{1} 的 Tcping 统计信息:" : "Tcping statistics for {0}:{1}",
+                    point.Address.AddressFamily == AddressFamily.InterNetworkV6
+                        ? $"[{point.Address}]"
+                        : point.Address, point.Port);
                 Console.WriteLine(
                     isZh
                         ? "    连接: 已发送 = {0}，已接收 = {1}，失败 = {2} ({3:0%} 失败)"
@@ -210,7 +214,9 @@ namespace mTcping
                 if (point == null) return;
                 Console.WriteLine();
                 Console.WriteLine(isZh ? "{0}:{1} 的 Tcping 统计信息:" : "Tcping statistics for {0}:{1}:",
-                    point.Address, point.Port);
+                    point.Address.AddressFamily == AddressFamily.InterNetworkV6
+                        ? $"[{point.Address}]"
+                        : point.Address, point.Port);
                 Console.WriteLine(
                     isZh
                         ? "    连接: 已发送 = {0}，已接收 = {1}，失败 = {2} ({3:0%} 失败)"
