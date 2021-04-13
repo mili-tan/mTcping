@@ -2,10 +2,14 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
+    <TrimMode>Link</TrimMode>
     <TargetFramework>.net5.0</TargetFramework>
     <AssemblyName>tcping</AssemblyName>
     <PublishTrimmed>false</PublishTrimmed>
     <PublishReadyToRun>false</PublishReadyToRun>
+    <IlcOptimizationPreference>Size</IlcOptimizationPreference>
+    <IlcFoldIdenticalMethodBodies>true</IlcFoldIdenticalMethodBodies>
+    <EnableUnsafeBinaryFormatterSerialization>true</EnableUnsafeBinaryFormatterSerialization>
   </PropertyGroup>
 
   <ItemGroup>
