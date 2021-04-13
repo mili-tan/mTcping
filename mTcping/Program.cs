@@ -213,7 +213,7 @@ namespace mTcping
                 Thread.Sleep(500);
                 if (point == null) return;
                 Console.WriteLine();
-                Console.WriteLine(isZh ? "{0}:{1} 的 Tcping 统计信息:" : "Tcping statistics for {0}:{1}:",
+                Console.WriteLine(isZh ? "{0}:{1} 的 Tcping 统计信息:" : "Tcping statistics for {0}:{1}",
                     point.Address.AddressFamily == AddressFamily.InterNetworkV6
                         ? $"[{point.Address}]"
                         : point.Address, point.Port);
