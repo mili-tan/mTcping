@@ -22,8 +22,9 @@ namespace mTcping
                               Environment.NewLine +
                               $"Copyright (c) {DateTime.Now.Year} Milkey Tan. Code released under the MIT License"
             };
-            var isZh = Thread.CurrentThread.CurrentCulture.Name.Contains("zh");
             cmd.HelpOption("-?|-h|--help");
+
+            var isZh = Thread.CurrentThread.CurrentCulture.Name.Contains("zh");
             var hostArg = cmd.Argument("host", isZh ? "指定的目标主机地址。" : "Target host address");
             var portArg = cmd.Argument("port", isZh ? "指定的目标主机端口。" : "Target host port");
             var tOption = cmd.Option<string>("-t",
@@ -44,16 +45,17 @@ namespace mTcping
                 CommandOptionType.NoValue);
             var stopOption = cmd.Option("-s", isZh ? "在收到响应时停止。" : "Stop on receipt of response",
                 CommandOptionType.NoValue);
+            
             var times = new List<int>();
             var errors = new List<int>();
             var tasks = new List<Task>();
             var sent = new List<int>();
             var breakFlag = false;
-            IPEndPoint point = null;
+            var point = new IPEndPoint(IPAddress.Any, 80);
+            var ip = IPAddress.None;
 
             if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) aOption.ShowInHelpText = false;
 
-            var ip = IPAddress.None;
             cmd.OnExecute(() =>
             {
                 if (string.IsNullOrWhiteSpace(hostArg.Value))
@@ -68,11 +70,9 @@ namespace mTcping
                     : new Uri("http://" + (IPAddress.TryParse(hostArg.Value, out var ipAddress) &&
                                            ipAddress.AddressFamily == AddressFamily.InterNetworkV6
                                   ? $"[{ipAddress}]" : hostArg.Value) +
-                              (!string.IsNullOrWhiteSpace(portArg.Value)
-                                  ? ":" + portArg.Value : string.Empty));
+                              (!string.IsNullOrWhiteSpace(portArg.Value) ? ":" + portArg.Value : string.Empty));
 
                 if (host.HostNameType == UriHostNameType.Dns)
-                {
                     if (ipv4Option.HasValue())
                     {
                         foreach (var hostAddress in Dns.GetHostAddresses(host.Host))
@@ -86,7 +86,6 @@ namespace mTcping
                                 ip = hostAddress;
                     }
                     else ip = Dns.GetHostAddresses(host.Host).FirstOrDefault();
-                }
                 else
                     ip = IPAddress.Parse(host.Host);
 
@@ -96,7 +95,6 @@ namespace mTcping
                 }
                 catch (Exception)
                 {
-                    //Console.WriteLine(e); 
                     point = new IPEndPoint(ip, 80);
                     if (hostArg.Value.StartsWith("ssh://")) point.Port = 22;
                 }
@@ -140,12 +138,15 @@ namespace mTcping
 
                     var t = Task.Run(() =>
                     {
-                        if (!aOption.HasValue()) Thread.Sleep(iOption.HasValue() ? iOption.ParsedValue : 1000);
-                        else Thread.Sleep(i1 * 10);
                         var stopWatch = new Stopwatch();
                         var conn = true;
+
+                        if (!aOption.HasValue()) Thread.Sleep(iOption.HasValue() ? iOption.ParsedValue : 1000);
+                        else Thread.Sleep(i1 * 10);
+
                         stopWatch.Start();
                         sent.Add(0);
+
                         try
                         {
                             var socks = new Socket(point.AddressFamily, SocketType.Stream, ProtocolType.Tcp)
@@ -167,12 +168,13 @@ namespace mTcping
                             errors.Add(0);
                             conn = false;
                         }
-
                         stopWatch.Stop();
+
                         var time = Convert.ToInt32(stopWatch.Elapsed.TotalMilliseconds);
                         if (conn) times.Add(time);
                         if (conn && stopOption.HasValue()) breakFlag = true;
                         if (dateOption.HasValue()) Console.Write(DateTime.Now + " ");
+
                         Console.WriteLine(
                             isZh
                                 ? "来自 {0}:{1} 的 TCP 响应: 端口={2} 时间={3}ms"
@@ -181,6 +183,7 @@ namespace mTcping
                                 ? $"[{point.Address}]"
                                 : point.Address, point.Port, conn, time);
                     });
+
                     if (aOption.HasValue()) tasks.Add(t);
                     else t.Wait(wOption.HasValue() ? wOption.ParsedValue + 1000 : 3000);
                 }
@@ -231,7 +234,6 @@ namespace mTcping
                     times.Min(), times.Max(), times.Average());
                 Console.WriteLine();
             };
-
             cmd.Execute(args);
         }
     }
