@@ -2,11 +2,11 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TrimMode>Link</TrimMode>
     <TargetFramework>.net5.0</TargetFramework>
     <AssemblyName>tcping</AssemblyName>
     <PublishTrimmed>false</PublishTrimmed>
     <PublishReadyToRun>false</PublishReadyToRun>
+    <TrimMode>Link</TrimMode>
     <IlcOptimizationPreference>Size</IlcOptimizationPreference>
     <IlcFoldIdenticalMethodBodies>true</IlcFoldIdenticalMethodBodies>
     <EnableUnsafeBinaryFormatterSerialization>true</EnableUnsafeBinaryFormatterSerialization>
@@ -14,9 +14,9 @@
 
   <ItemGroup>
     <PackageReference Include="McMaster.Extensions.CommandLineUtils" Version="3.0.0" />
-    <PackageReference Include="Microsoft.DotNet.ILCompiler" Version="6.0.0-preview.6.21276.6" />
-    <PackageReference Include="runtime.linux-x64.Microsoft.DotNet.ILCompiler" Version="6.0.0-preview.6.21276.6" />
-    <PackageReference Include="runtime.win-x64.Microsoft.DotNet.ILCompiler" Version="6.0.0-preview.6.21276.6" />
+    <PackageReference Include="Microsoft.DotNet.ILCompiler" Version="6.0.0-rc.1.21370.1" />
+    <PackageReference Include="runtime.linux-x64.Microsoft.DotNet.ILCompiler" Version="6.0.0-rc.1.21370.1" />
+    <PackageReference Include="runtime.win-x64.Microsoft.DotNet.ILCompiler" Version="6.0.0-rc.1.21370.1" />
   </ItemGroup>
 
 </Project>
