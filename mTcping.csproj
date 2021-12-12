@@ -13,10 +13,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="McMaster.Extensions.CommandLineUtils" Version="3.0.0" />
-    <PackageReference Include="Microsoft.DotNet.ILCompiler" Version="6.0.0-rc.1.21373.2" />
-    <PackageReference Include="runtime.linux-x64.Microsoft.DotNet.ILCompiler" Version="6.0.0-rc.1.21373.2" />
-    <PackageReference Include="runtime.win-x64.Microsoft.DotNet.ILCompiler" Version="6.0.0-rc.1.21373.2" />
+    <PackageReference Include="McMaster.Extensions.CommandLineUtils" Version="3.1.0" />
+    <PackageReference Include="Microsoft.DotNet.ILCompiler" Version="7.0.0-alpha.1.21608.2" />
   </ItemGroup>
 
 </Project>
