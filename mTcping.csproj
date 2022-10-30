@@ -15,7 +15,7 @@
   <ItemGroup>
     <PackageReference Include="IPNetwork2" Version="2.6.472" />
     <PackageReference Include="McMaster.Extensions.CommandLineUtils" Version="4.0.1" />
-    <PackageReference Include="Microsoft.DotNet.ILCompiler" Version="8.0.0-gthread.6.22527.1" />
+    <PackageReference Include="Microsoft.DotNet.ILCompiler" Version="7.0.0-rc.2.22472.3" />
   </ItemGroup>
 
 </Project>
