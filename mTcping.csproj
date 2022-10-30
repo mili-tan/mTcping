@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>.net5.0</TargetFramework>
+    <TargetFramework>.net6.0</TargetFramework>
     <AssemblyName>tcping</AssemblyName>
     <PublishTrimmed>false</PublishTrimmed>
     <PublishReadyToRun>false</PublishReadyToRun>
@@ -13,8 +13,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="McMaster.Extensions.CommandLineUtils" Version="3.1.0" />
-    <PackageReference Include="Microsoft.DotNet.ILCompiler" Version="7.0.0-alpha.1.21608.2" />
+    <PackageReference Include="IPNetwork2" Version="2.6.472" />
+    <PackageReference Include="McMaster.Extensions.CommandLineUtils" Version="4.0.1" />
+    <PackageReference Include="Microsoft.DotNet.ILCompiler" Version="8.0.0-gthread.6.22527.1" />
   </ItemGroup>
 
 </Project>

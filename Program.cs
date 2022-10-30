@@ -45,7 +45,7 @@ namespace mTcping
                 CommandOptionType.NoValue);
             var stopOption = cmd.Option("-s", isZh ? "在收到响应时停止。" : "Stop on receipt of response",
                 CommandOptionType.NoValue);
-            
+
             var times = new List<int>();
             var errors = new List<int>();
             var tasks = new List<Task>();
@@ -65,150 +65,182 @@ namespace mTcping
                     return;
                 }
 
-                var host = hostArg.Value.Contains("://")
-                    ? new Uri(hostArg.Value)
-                    : new Uri("http://" + (IPAddress.TryParse(hostArg.Value, out var ipAddress) &&
-                                           ipAddress.AddressFamily == AddressFamily.InterNetworkV6
-                                  ? $"[{ipAddress}]" : hostArg.Value) +
-                              (!string.IsNullOrWhiteSpace(portArg.Value) ? ":" + portArg.Value : string.Empty));
+                var hosts = new List<Uri>();
 
-                if (host.HostNameType == UriHostNameType.Dns)
-                    if (ipv4Option.HasValue())
-                    {
-                        foreach (var hostAddress in Dns.GetHostAddresses(host.Host))
-                            if (hostAddress.AddressFamily == AddressFamily.InterNetwork)
-                                ip = hostAddress;
-                    }
-                    else if (ipv6Option.HasValue())
-                    {
-                        foreach (var hostAddress in Dns.GetHostAddresses(host.Host))
-                            if (hostAddress.AddressFamily == AddressFamily.InterNetworkV6)
-                                ip = hostAddress;
-                    }
-                    else ip = Dns.GetHostAddresses(host.Host).FirstOrDefault();
+                if (hostArg.Value.Contains("/") && IPNetwork.TryParse(hostArg.Value, out var hostNetwork))
+                {
+                    hosts.AddRange(hostNetwork.ListIPAddress()
+                        .Select(address => new Uri("http://" + (address.AddressFamily == AddressFamily.InterNetworkV6
+                            ? $"[{address}]"
+                            : address) + (!string.IsNullOrWhiteSpace(portArg.Value)
+                            ? ":" + portArg.Value
+                            : string.Empty))));
+                }
                 else
-                    ip = IPAddress.Parse(host.Host);
-
-                try
                 {
-                    point = new IPEndPoint(ip, host.Port);
-                }
-                catch (Exception)
-                {
-                    point = new IPEndPoint(ip, 80);
-                    if (hostArg.Value.StartsWith("ssh://")) point.Port = 22;
+                    hosts.Add(hostArg.Value.Contains("://")
+                        ? new Uri(hostArg.Value)
+                        : new Uri("http://" + (IPAddress.TryParse(hostArg.Value, out var ipAddress) &&
+                                               ipAddress.AddressFamily == AddressFamily.InterNetworkV6
+                                      ? $"[{ipAddress}]"
+                                      : hostArg.Value) +
+                                  (!string.IsNullOrWhiteSpace(portArg.Value) ? ":" + portArg.Value : string.Empty)));
                 }
 
-                if (Equals(ip, IPAddress.None))
+                foreach (var host in hosts)
                 {
-                    Console.WriteLine(isZh
-                        ? "请求找不到目标主机。请检查该名称，然后重试。"
-                        : "The request could not find the target host. Please check the name and try again");
-                    Environment.Exit(0);
-                }
-
-                Console.WriteLine();
-                Console.WriteLine(
-                    string.Format(isZh ? "正在 Tcping {0}:{1} 目标主机" : "Tcping {0}:{1} target host in progress",
-                        point.Address.AddressFamily == AddressFamily.InterNetworkV6
-                            ? $"[{point.Address}]"
-                            : point.Address, point.Port) +
-                    (host.HostNameType == UriHostNameType.Dns ? $" [{host.Host}]" : string.Empty) + ":");
-
-                try
-                {
-                    new Socket(point.AddressFamily, SocketType.Stream, ProtocolType.Tcp)
-                    {
-                        Blocking = false,
-                        ReceiveTimeout = wOption.HasValue() ? wOption.ParsedValue : 1000,
-                        SendTimeout = wOption.HasValue() ? wOption.ParsedValue : 1000
-                    }.BeginConnect(point, null, null).AsyncWaitHandle.WaitOne(500);
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e);
-                }
-
-                for (var i = 0;
-                    i < (nOption.HasValue() ? nOption.ParsedValue : tOption.HasValue() ? int.MaxValue : 4);
-                    i++)
-                {
-                    if (breakFlag) break;
-                    var i1 = i;
-
-                    var t = Task.Run(() =>
-                    {
-                        var stopWatch = new Stopwatch();
-                        var conn = true;
-
-                        if (!aOption.HasValue()) Thread.Sleep(iOption.HasValue() ? iOption.ParsedValue : 1000);
-                        else Thread.Sleep(i1 * 10);
-
-                        stopWatch.Start();
-                        sent.Add(0);
-
-                        try
+                    if (host.HostNameType == UriHostNameType.Dns)
+                        if (ipv4Option.HasValue())
                         {
-                            var socks = new Socket(point.AddressFamily, SocketType.Stream, ProtocolType.Tcp)
+                            foreach (var hostAddress in Dns.GetHostAddresses(host.Host))
+                                if (hostAddress.AddressFamily == AddressFamily.InterNetwork)
+                                    ip = hostAddress;
+                        }
+                        else if (ipv6Option.HasValue())
+                        {
+                            foreach (var hostAddress in Dns.GetHostAddresses(host.Host))
+                                if (hostAddress.AddressFamily == AddressFamily.InterNetworkV6)
+                                    ip = hostAddress;
+                        }
+                        else ip = Dns.GetHostAddresses(host.Host).FirstOrDefault();
+                    else
+                        ip = IPAddress.Parse(host.Host);
+
+                    try
+                    {
+                        point = new IPEndPoint(ip, host.Port);
+                    }
+                    catch (Exception)
+                    {
+                        point = new IPEndPoint(ip, 80);
+                        if (hostArg.Value.StartsWith("ssh://")) point.Port = 22;
+                    }
+
+                    if (Equals(ip, IPAddress.None))
+                    {
+                        Console.WriteLine(isZh
+                            ? "请求找不到目标主机。请检查该名称，然后重试。"
+                            : "The request could not find the target host. Please check the name and try again");
+                        Environment.Exit(0);
+                    }
+
+                    if (hosts.Count == 1)
+                    {
+                        Console.WriteLine();
+                        Console.WriteLine(
+                            string.Format(isZh ? "正在 Tcping {0}:{1} 目标主机" : "Tcping {0}:{1} target host in progress",
+                                point.Address.AddressFamily == AddressFamily.InterNetworkV6
+                                    ? $"[{point.Address}]"
+                                    : point.Address, point.Port) +
+                            (host.HostNameType == UriHostNameType.Dns ? $" [{host.Host}]" : string.Empty) + ":");
+                    }
+
+                    try
+                    {
+                        new Socket(point.AddressFamily, SocketType.Stream, ProtocolType.Tcp)
+                        {
+                            Blocking = false,
+                            ReceiveTimeout = wOption.HasValue() ? wOption.ParsedValue : 1000,
+                            SendTimeout = wOption.HasValue() ? wOption.ParsedValue : 1000
+                        }.BeginConnect(point, null, null).AsyncWaitHandle.WaitOne(500);
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e);
+                    }
+
+                    for (var i = 0;
+                         i < (nOption.HasValue() ? nOption.ParsedValue : tOption.HasValue() ? int.MaxValue : 4);
+                         i++)
+                    {
+                        if (breakFlag) break;
+                        var i1 = i;
+
+                        var t = Task.Run(() =>
+                        {
+                            var stopWatch = new Stopwatch();
+                            var conn = true;
+
+                            if (!aOption.HasValue()) Thread.Sleep(iOption.HasValue() ? iOption.ParsedValue : 1000);
+                            else Thread.Sleep(i1 * 10);
+
+                            stopWatch.Start();
+                            sent.Add(0);
+
+                            try
                             {
-                                Blocking = false, ReceiveTimeout = wOption.HasValue() ? wOption.ParsedValue : 2000,
-                                SendTimeout = wOption.HasValue() ? wOption.ParsedValue : 2000
-                            };
-                            var result = socks.BeginConnect(point, null, null);
-                            if (!result.AsyncWaitHandle.WaitOne(wOption.HasValue() ? wOption.ParsedValue : 2000, true))
+                                var socks = new Socket(point.AddressFamily, SocketType.Stream, ProtocolType.Tcp)
+                                {
+                                    Blocking = false,
+                                    ReceiveTimeout = wOption.HasValue() ? wOption.ParsedValue : 2000,
+                                    SendTimeout = wOption.HasValue() ? wOption.ParsedValue : 2000
+                                };
+                                var result = socks.BeginConnect(point, null, null);
+                                if (!result.AsyncWaitHandle.WaitOne(wOption.HasValue() ? wOption.ParsedValue : 2000,
+                                        true))
+                                {
+                                    errors.Add(0);
+                                    conn = false;
+                                }
+                                else Task.Run(() => socks.Close(wOption.HasValue() ? wOption.ParsedValue : 2000));
+                            }
+                            catch (Exception exception)
                             {
+                                Console.WriteLine(exception.Message);
                                 errors.Add(0);
                                 conn = false;
                             }
-                            else Task.Run(() => socks.Close(wOption.HasValue() ? wOption.ParsedValue : 2000));
-                        }
-                        catch (Exception exception)
-                        {
-                            Console.WriteLine(exception.Message);
-                            errors.Add(0);
-                            conn = false;
-                        }
-                        stopWatch.Stop();
 
-                        var time = Convert.ToInt32(stopWatch.Elapsed.TotalMilliseconds);
-                        if (conn) times.Add(time);
-                        if (conn && stopOption.HasValue()) breakFlag = true;
-                        if (dateOption.HasValue()) Console.Write(DateTime.Now + " ");
+                            stopWatch.Stop();
 
-                        Console.WriteLine(
-                            isZh
-                                ? "来自 {0}:{1} 的 TCP 响应: 端口={2} 时间={3}ms"
-                                : "TCP response from {0}:{1} Port={2} Time={3}ms",
+                            var time = Convert.ToInt32(stopWatch.Elapsed.TotalMilliseconds);
+                            if (conn) times.Add(time);
+                            if (conn && stopOption.HasValue()) breakFlag = true;
+                            if (dateOption.HasValue()) Console.Write(DateTime.Now + " ");
+
+                            if (hosts.Count > 1 && conn) Console.ForegroundColor = ConsoleColor.DarkGreen;
+                            Console.WriteLine(
+                                isZh
+                                    ? "来自 {0}:{1} 的 TCP 响应: 端口={2} 时间={3}ms"
+                                    : "TCP response from {0}:{1} Port={2} Time={3}ms",
+                                point.Address.AddressFamily == AddressFamily.InterNetworkV6
+                                    ? $"[{point.Address}]"
+                                    : point.Address, point.Port, conn, time);
+
+                            Console.ResetColor();
+                        });
+
+                        if (aOption.HasValue()) tasks.Add(t);
+                        else t.Wait(wOption.HasValue() ? wOption.ParsedValue + 1000 : 3000);
+                    }
+
+                    if (aOption.HasValue()) Task.WaitAll(tasks.ToArray());
+
+                    Thread.Sleep(100);
+                    if (hosts.Count == 1)
+                    {
+                        Console.WriteLine();
+                        Console.WriteLine(isZh ? "{0}:{1} 的 Tcping 统计信息:" : "Tcping statistics for {0}:{1}",
                             point.Address.AddressFamily == AddressFamily.InterNetworkV6
                                 ? $"[{point.Address}]"
-                                : point.Address, point.Port, conn, time);
-                    });
-
-                    if (aOption.HasValue()) tasks.Add(t);
-                    else t.Wait(wOption.HasValue() ? wOption.ParsedValue + 1000 : 3000);
+                                : point.Address, point.Port);
+                        Console.WriteLine(
+                            isZh
+                                ? "    连接: 已发送 = {0}，已接收 = {1}，失败 = {2} ({3:0%} 失败)"
+                                : "    Connection: Sent = {0}, Received = {1}, Failed = {2} ({3:0%} Failed)",
+                            sent.Count, times.Count, errors.Count, errors.Count / (double)sent.Count);
+                        if (times.Any())
+                        {
+                            Console.WriteLine(isZh ? "往返行程的估计时间(以毫秒为单位):" : "Time (in milliseconds) for a round trip:");
+                            Console.WriteLine(
+                                isZh
+                                    ? "    最短 = {0:0.0}ms，最长 = {1:0.0}ms，平均 = {2:0.0}ms"
+                                    : "    Shortest = {0:0.0}ms, Longest = {1:0.0}ms, Average = {2:0.0}ms.",
+                                times.Min(), times.Max(), times.Average());
+                            Console.WriteLine();
+                        }
+                    }
                 }
-
-                if (aOption.HasValue()) Task.WaitAll(tasks.ToArray());
-
-                Thread.Sleep(100);
-                Console.WriteLine();
-                Console.WriteLine(isZh ? "{0}:{1} 的 Tcping 统计信息:" : "Tcping statistics for {0}:{1}",
-                    point.Address.AddressFamily == AddressFamily.InterNetworkV6
-                        ? $"[{point.Address}]"
-                        : point.Address, point.Port);
-                Console.WriteLine(
-                    isZh
-                        ? "    连接: 已发送 = {0}，已接收 = {1}，失败 = {2} ({3:0%} 失败)"
-                        : "    Connection: Sent = {0}, Received = {1}, Failed = {2} ({3:0%} Failed)", 
-                    sent.Count, times.Count, errors.Count, errors.Count / (double) sent.Count);
-                if (times.Count <= 0) return;
-                Console.WriteLine(isZh ? "往返行程的估计时间(以毫秒为单位):" : "Time (in milliseconds) for a round trip:");
-                Console.WriteLine(
-                    isZh
-                        ? "    最短 = {0:0.0}ms，最长 = {1:0.0}ms，平均 = {2:0.0}ms"
-                        : "    Shortest = {0:0.0}ms, Longest = {1:0.0}ms, Average = {2:0.0}ms.", 
-                    times.Min(), times.Max(), times.Average());
-                Console.WriteLine();
             });
 
             Console.CancelKeyPress += (_, _) =>
@@ -224,7 +256,7 @@ namespace mTcping
                     isZh
                         ? "    连接: 已发送 = {0}，已接收 = {1}，失败 = {2} ({3:0%} 失败)"
                         : "    Connection: Sent = {0}, Received = {1}, Failed = {2} ({3:0%} Failed)",
-                    sent.Count, times.Count, errors.Count, errors.Count / (double)sent.Count);
+                    sent.Count, times.Count, errors.Count, errors.Count / (double) sent.Count);
                 if (times.Count <= 0) return;
                 Console.WriteLine(isZh ? "往返行程的估计时间(以毫秒为单位):" : "Time (in milliseconds) for a round trip:");
                 Console.WriteLine(
