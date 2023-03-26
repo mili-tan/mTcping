@@ -12,9 +12,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="IPNetwork2" Version="2.6.472" />
-    <PackageReference Include="McMaster.Extensions.CommandLineUtils" Version="4.0.1" />
-    <PackageReference Include="Microsoft.DotNet.ILCompiler" Version="7.0.0-rc.2.22472.3" />
+    <PackageReference Include="IPNetwork2" Version="2.6.556" />
+    <PackageReference Include="McMaster.Extensions.CommandLineUtils" Version="4.0.2" />
+    <PackageReference Include="Microsoft.DotNet.ILCompiler" Version="8.0.0-preview.2.23128.3" />
   </ItemGroup>
 
 </Project>
