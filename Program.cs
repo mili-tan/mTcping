@@ -127,7 +127,9 @@ class Program
 
                 var waitTime = wOption.HasValue() ? wOption.ParsedValue : 2000;
                 var intervalTime = iOption.HasValue() ? iOption.ParsedValue : 1000;
-                var sendCount = nOption.HasValue() ? nOption.ParsedValue : tOption.HasValue() ? int.MaxValue : 4;
+                var sendCount = nOption.HasValue() ? nOption.ParsedValue :
+                    tOption.HasValue() ? int.MaxValue :
+                    hosts.Count > 1 ? 1 : 4;
 
                 try
                 {
