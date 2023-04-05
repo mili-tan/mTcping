@@ -199,7 +199,7 @@ class Program
                 if (aOption.HasValue()) Task.WaitAll(Tasks.ToArray());
 
                 Thread.Sleep(100);
-                if (Hosts.Count == 1) PrintCount();
+                PrintCount();
             }
         });
 
