@@ -21,6 +21,8 @@ class Program
     public static IPAddress IpAddress = IPAddress.None;
     public static bool IsZh = Thread.CurrentThread.CurrentCulture.Name.Contains("zh");
     public static bool BreakFlag;
+    public static List<Uri> Hosts = new();
+
 
     static void Main(string[] args)
     {
@@ -65,17 +67,15 @@ class Program
                 return;
             }
 
-            var hosts = new List<Uri>();
-
             if (hostArg.Value.Contains("/") && IPNetwork.TryParse(hostArg.Value, out var hostNetwork))
-                hosts.AddRange(hostNetwork.ListIPAddress()
+                Hosts.AddRange(hostNetwork.ListIPAddress()
                     .Select(address => new Uri("http://" + (address.AddressFamily == AddressFamily.InterNetworkV6
                         ? $"[{address}]"
                         : address) + (!string.IsNullOrWhiteSpace(portArg.Value)
                         ? ":" + portArg.Value
                         : string.Empty))));
             else
-                hosts.Add(hostArg.Value.Contains("://")
+                Hosts.Add(hostArg.Value.Contains("://")
                     ? new Uri(hostArg.Value)
                     : new Uri("http://" + (IPAddress.TryParse(hostArg.Value, out var ipAddress) &&
                                            ipAddress.AddressFamily == AddressFamily.InterNetworkV6
@@ -83,7 +83,7 @@ class Program
                                   : hostArg.Value) +
                               (!string.IsNullOrWhiteSpace(portArg.Value) ? ":" + portArg.Value : string.Empty)));
 
-            foreach (var host in hosts)
+            foreach (var host in Hosts)
             {
                 if (host.HostNameType == UriHostNameType.Dns)
                     if (ipv4Option.HasValue())
@@ -114,7 +114,7 @@ class Program
                     Environment.Exit(0);
                 }
 
-                if (hosts.Count == 1)
+                if (Hosts.Count == 1)
                 {
                     Console.WriteLine();
                     Console.WriteLine(
@@ -129,7 +129,7 @@ class Program
                 var intervalTime = iOption.HasValue() ? iOption.ParsedValue : 1000;
                 var sendCount = nOption.HasValue() ? nOption.ParsedValue :
                     tOption.HasValue() ? int.MaxValue :
-                    hosts.Count > 1 ? 1 : 4;
+                    Hosts.Count > 1 ? 1 : 4;
 
                 try
                 {
@@ -181,7 +181,7 @@ class Program
                         if (isConnect && stopOption.HasValue()) BreakFlag = true;
                         if (dateOption.HasValue()) Console.Write(DateTime.Now + " ");
 
-                        if (hosts.Count > 1 && isConnect) Console.ForegroundColor = ConsoleColor.DarkGreen;
+                        if (Hosts.Count > 1 && isConnect) Console.ForegroundColor = ConsoleColor.DarkGreen;
                         Console.WriteLine(
                             IsZh
                                 ? "来自 {0}:{1} 的 TCP 响应: 端口={2} 时间={3}ms"
@@ -199,7 +199,7 @@ class Program
                 if (aOption.HasValue()) Task.WaitAll(Tasks.ToArray());
 
                 Thread.Sleep(100);
-                if (hosts.Count == 1) PrintCount();
+                if (Hosts.Count == 1) PrintCount();
             }
         });
 
@@ -226,9 +226,10 @@ class Program
         if (Point == null) return;
         Console.WriteLine();
         Console.WriteLine(IsZh ? "{0}:{1} 的 Tcping 统计信息:" : "Tcping statistics for {0}:{1}",
-            Point.Address.AddressFamily == AddressFamily.InterNetworkV6
+            (Hosts.Count > 1 ? Hosts.FirstOrDefault().Host + " ~ " : string.Empty) +
+            (Point.Address.AddressFamily == AddressFamily.InterNetworkV6
                 ? $"[{Point.Address}]"
-                : Point.Address, Point.Port);
+                : Point.Address), Point.Port);
         Console.WriteLine(
             IsZh
                 ? "    连接: 已发送 = {0}，已接收 = {1}，失败 = {2} ({3:0%} 失败)"
