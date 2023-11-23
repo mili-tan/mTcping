@@ -1,4 +1,5 @@
-﻿using System;
+﻿extern alias IPNetwork2;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -22,7 +23,6 @@ class Program
     public static bool IsZh = Thread.CurrentThread.CurrentCulture.Name.Contains("zh");
     public static bool BreakFlag;
     public static List<Uri> Hosts = new();
-
 
     static void Main(string[] args)
     {
@@ -67,7 +67,8 @@ class Program
                 return;
             }
 
-            if (hostArg.Value.Contains("/") && IPNetwork.TryParse(hostArg.Value, out var hostNetwork))
+            if (hostArg.Value.Contains("/") &&
+                IPNetwork2.System.Net.IPNetwork.TryParse(hostArg.Value, out var hostNetwork))
                 Hosts.AddRange(hostNetwork.ListIPAddress()
                     .Select(address => new Uri("http://" + (address.AddressFamily == AddressFamily.InterNetworkV6
                         ? $"[{address}]"
