@@ -1,5 +1,4 @@
-﻿extern alias IPNetwork2;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -68,7 +67,7 @@ class Program
             }
 
             if (hostArg.Value.Contains("/") &&
-                IPNetwork2.System.Net.IPNetwork.TryParse(hostArg.Value, out var hostNetwork))
+                System.Net.IPNetwork2.TryParse(hostArg.Value, out var hostNetwork))
                 Hosts.AddRange(hostNetwork.ListIPAddress()
                     .Select(address => new Uri("http://" + (address.AddressFamily == AddressFamily.InterNetworkV6
                         ? $"[{address}]"
