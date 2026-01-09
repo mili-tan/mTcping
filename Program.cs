@@ -13,7 +13,7 @@ namespace mTcping;
 
 class Program
 {
-    public static List<int> Times = new();
+    public static List<double> Times = new();
     public static List<int> Errors = new();
     public static List<int> Sends = new();
     public static List<Task> Tasks = new();
@@ -176,7 +176,7 @@ class Program
 
                         stopWatch.Stop();
 
-                        var time = Convert.ToInt32(stopWatch.Elapsed.TotalMilliseconds);
+                        var time = double.Round(stopWatch.Elapsed.TotalMilliseconds, 1);
                         if (isConnect) Times.Add(time);
                         if (isConnect && stopOption.HasValue()) BreakFlag = true;
                         if (dateOption.HasValue()) Console.Write(DateTime.Now + " ");
