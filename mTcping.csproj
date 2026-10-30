@@ -12,8 +12,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="IPNetwork2" Version="3.4.851" />
-    <PackageReference Include="McMaster.Extensions.CommandLineUtils" Version="4.1.1" />
+    <PackageReference Include="IPNetwork2" Version="5.0.1" />
+    <PackageReference Include="McMaster.Extensions.CommandLineUtils" Version="5.1.0" />
   </ItemGroup>
 
 </Project>
